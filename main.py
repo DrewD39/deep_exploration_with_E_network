@@ -22,13 +22,46 @@ def dqn_run(run_name='default', plot=False):
     t = Trainer(Qnet, env, selection, run_name=run_name, plot=plot)
     t.run()
 
+def dqn_run_softmax(run_name='default', plot=False):
+    selection = softmax()
+    env = CartPoleVision()
+    Qnet = selectNet()
+
+    t = Trainer(Qnet, env, selection, run_name=run_name, plot=plot)
+    t.run()
+
 def dora_run(run_name='default', plot=False):
     selection = LLL_epsilon_greedy()
     env = CartPoleVision()
     Qnet = selectNet()
     Enet = selectNet(Enet=True)
-    
+
     t = DoraTrainer(Qnet, Enet, env, selection, lr=0.01, run_name=run_name, plot=plot)
+    t.run()
+
+def dora_run_softmax(run_name='default', plot=False):
+    selection = LLL_softmax()
+    env = CartPoleVision()
+    Qnet = selectNet()
+    Enet = selectNet(Enet=True)
+
+    t = DoraTrainer(Qnet, Enet, env, selection, lr=0.01, run_name=run_name, plot=plot)
+    t.run()
+
+def optimistic_dqn_run(run_name='default', plot=False):
+    selection = epsilon_greedy()
+    env = CartPoleVision()
+    optQnet = selectNet(Mode="optimisticQ")
+
+    t = Trainer(optQnet, env, selection, run_name=run_name, plot=plot)
+    t.run()
+
+def optimistic_dqn_run_softmax(run_name='default', plot=False):
+    selection = softmax()
+    env = CartPoleVision()
+    optQnet = selectNet(Mode="optimisticQ")
+
+    t = Trainer(optQnet, env, selection, run_name=run_name, plot=plot)
     t.run()
 
 def run(args):
@@ -37,7 +70,7 @@ def run(args):
     else:
         dqn_run(run_name=args.name, plot=args.plot)
 
-    
+
 if __name__ == '__main__':
     args = parse_args()
     run(args)
