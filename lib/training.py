@@ -31,11 +31,11 @@ class Trainer:
         self.lr = lr
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         # self.optimizer = optim.RMSprop(self.model.parameters(), lr=self.lr)
-        # self.optimizer = optim.RMSprop(self.model.parameters())        
+        # self.optimizer = optim.RMSprop(self.model.parameters())
         self.target_update_frequency = 20
         self.qnet_update_frequency = 1
 
-        self.num_episodes = 30
+        self.num_episodes = 3000
         self.env = env
         self.selection = selection
 
@@ -46,7 +46,7 @@ class Trainer:
 
         if len(self.memory) < self.batch_size:
             return
-        
+
         transitions = self.memory.sample(self.batch_size)
         # Transpose the batch (see http://stackoverflow.com/a/19343/3343043 for
         # detailed explanation).
@@ -66,7 +66,7 @@ class Trainer:
         action_batch = Variable(torch.cat(batch.action))
         reward_batch = Variable(torch.cat(batch.reward))
         next_action_batch = Variable(torch.cat([a for a in batch.next_action
-                                                if a is not None]))    
+                                                if a is not None]))
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken
@@ -123,7 +123,7 @@ class Trainer:
         if is_ipython:
             display.clear_output(wait=True)
             display.display(plt.gcf())
-        
+
     def run(self):
         for i_episode in range(self.num_episodes):
             # Initialize the environment and state
@@ -136,13 +136,13 @@ class Trainer:
                 action = self.selection.select_action(Qs)
 
                 if sarsa is not None:
-                    # Store the transition in memory                    
+                    # Store the transition in memory
                     sarsa.append(action)
-                    self.memory.push(*sarsa) 
-                
+                    self.memory.push(*sarsa)
+
                 next_state, reward, done, _ = self.env.step(action[0, 0])
                 reward = Tensor([reward])
-        
+
                 # Store next batch of trainsition
                 sarsa = [state, action, reward, next_state]
 
@@ -151,12 +151,12 @@ class Trainer:
 
                 # Perform one step of the optimization
                 self.optimize_model()
-                
+
                 if done:
                     # store last transition to memory
                     sarsa.append(None)
-                    self.memory.push(*sarsa) 
-                    
+                    self.memory.push(*sarsa)
+
                     # report result
                     self.episode_durations.append(t + 1)
                     joblib.dump(self.episode_durations,
@@ -167,11 +167,11 @@ class Trainer:
         self.env.render(close=True)
         self.env.close()
         if self.plot:
-            print('Complete')            
+            print('Complete')
             plt.ioff()
             plt.show()
 
-        
+
 class DoraTrainer:
     def __init__(self, qnet, enet, env, selection, lr=1e-3, run_name="default",
                  plot=False):
@@ -181,12 +181,12 @@ class DoraTrainer:
         self.env = env
         self.selection = selection
         self.lr = lr
-        
+
         # no use of selection and env here, because will override run function
         self.qnet_trainer = Trainer(qnet, env, selection, lr=lr, sarsa=False)
         self.enet_trainer = Trainer(enet, env, selection, lr=lr, sarsa=True)
 
-        self.num_episodes = 30        
+        self.num_episodes = 30
 
     def run(self):
         for i_episode in range(self.num_episodes):
@@ -201,21 +201,21 @@ class DoraTrainer:
                 Es = self.enet_trainer.model(Variable(state, volatile=True).\
                                              type(FloatTensor)).\
                                              data.cpu().numpy().ravel()
-                
+
                 action = self.selection.select_action(Qs, Es, self.lr)
 
                 if sarsa is not None:
-                    # Store the transition in memory                    
+                    # Store the transition in memory
                     sarsa.append(action)
                     sarsa_dora = copy.deepcopy(sarsa)
                     sarsa_dora[2] = Tensor([0])
                     self.qnet_trainer.memory.push(*sarsa)
-                    self.enet_trainer.memory.push(*sarsa_dora)     
+                    self.enet_trainer.memory.push(*sarsa_dora)
 
                 # reward is 0 for updating evalue
-                next_state, reward, done, _ = self.env.step(action[0, 0]) 
+                next_state, reward, done, _ = self.env.step(action[0, 0])
                 reward = Tensor([reward])
-        
+
                 # Store next transition
                 sarsa = [state, action, reward, next_state]
 
@@ -232,7 +232,7 @@ class DoraTrainer:
                     sarsa_dora = copy.deepcopy(sarsa)
                     sarsa_dora[2] = Tensor([0])
                     self.qnet_trainer.memory.push(*sarsa)
-                    self.enet_trainer.memory.push(*sarsa_dora)     
+                    self.enet_trainer.memory.push(*sarsa_dora)
 
                     # report result
                     self.qnet_trainer.episode_durations.append(t + 1)
@@ -246,8 +246,6 @@ class DoraTrainer:
         self.env.render(close=True)
         self.env.close()
         if self.plot:
-            print('Complete')            
+            print('Complete')
             plt.ioff()
             plt.show()
-
-        

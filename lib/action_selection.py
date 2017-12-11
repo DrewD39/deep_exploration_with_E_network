@@ -36,11 +36,14 @@ class softmax:
 
     def select_action(self, Qs):
         temp = self.temp_end + (self.temp_start - self.temp_end) * \
-              math.exp(-1. * self.steps_done / self.temp_decay)
+              math.exp(-1. * self.steps_done / self.temp_growth)
+        num_a = len(Qs)
         self.steps_done += 1
 
         prob = np.zeros_like(Qs)
         rand = np.random.rand()
+        softSum = 0
+        probSum = 0
         for i in range(num_a): # iterate through actions
             softSum += np.exp(Qs[i] / temp)
         for i in range(num_a): # iterate through actions
@@ -91,7 +94,7 @@ class LLL_softmax:
     def q2pr(self, Qs): # f_Q / stochastic action selection rule
         # qvalues to probabilities
         temp = self.temp_end + (self.temp_start - self.temp_end) * \
-              math.exp(-1. * self.steps_done / self.temp_decay)
+              math.exp(-1. * self.steps_done / self.temp_growth)
         num_a = len(Qs)
         softSum = 0
         prob = np.zeros_like(Qs)

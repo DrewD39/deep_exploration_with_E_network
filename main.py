@@ -1,14 +1,15 @@
 from lib.setting import *
 from lib.model import selectNet
 from lib.dataset import CartPoleVision
-from lib.action_selection import epsilon_greedy, LLL_epsilon_greedy
+from lib.action_selection import epsilon_greedy, LLL_epsilon_greedy, softmax, LLL_softmax
 from lib.training import Trainer, DoraTrainer
 import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="DORA training")
-    parser.add_argument('-m', '--mode', choices=['dqn', 'dora'],
-                        help='dqn or dora', default='dora')
+    parser.add_argument('-m', '--mode', choices=['dqn_greedy', 'dqn_softmax', 'dora_greedy',\
+                                                'dora_softmax', 'dqn_opt_greedy', 'dqn_opt_softmax'],
+                        help='dqn, dora, optimistic dqn - epsilon greedy or softmax', default='dora_greedy')
     parser.add_argument('-n', '--name', help='name to save', default='default')
     parser.add_argument('-p', '--plot', action="store_true", default=False)
     args = parser.parse_args()
@@ -65,10 +66,19 @@ def optimistic_dqn_run_softmax(run_name='default', plot=False):
     t.run()
 
 def run(args):
-    if args.mode == 'dora':
-        dora_run(run_name=args.name, plot=args.plot)
-    else:
+    if args.mode == 'dqn_greedy':
         dqn_run(run_name=args.name, plot=args.plot)
+    if args.mode == 'dqn_softmax':
+        dqn_run_softmax(run_name=args.name, plot=args.plot)
+    if args.mode == 'dora_greedy':
+        dora_run(run_name=args.name, plot=args.plot)
+    if args.mode == 'dora_softmax':
+        dora_run_softmax(run_name=args.name, plot=args.plot)
+    if args.mode == 'dqn_opt_greedy':
+        optimistic_dqn_run(run_name=args.name, plot=args.plot)
+    if args.mode == 'dqn_opt_softmax':
+        optimistic_dqn_run_softmax(run_name=args.name, plot=args.plot)
+
 
 
 if __name__ == '__main__':

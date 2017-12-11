@@ -52,8 +52,8 @@ def plot_multiple(mode='dora', logdir='logs'):
     plt.show()
 
 def plot_default():
-    dqn = joblib.load('logs/dqn_default.pkl')
-    dora = joblib.load('logs/dora_default.pkl')
+    dqn = joblib.load('logs/dqn_dqn_greedy_6.pkl')
+    dora = joblib.load('logs/dqn_dqn_greedy_7.pkl')
 
     plt.plot(dqn, label="dqn with epsilon greedy")
     plt.plot(dora, label="dora with LLL epsilon greedy")
